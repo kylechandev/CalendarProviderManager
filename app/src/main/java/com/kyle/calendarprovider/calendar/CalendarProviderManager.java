@@ -262,19 +262,19 @@ public class CalendarProviderManager {
     /**
      * 更新指定ID的日历事件
      *
-     * @param eventID       日历事件ID
-     * @param startTime     开始时间
-     * @param endTime       结束时间
-     * @param eventTitle    事件标题
-     * @param eventDes      事件描述
-     * @param eventLocation 事件地点
-     * @param advanceTime   事件提醒时间
+     * @param eventID          日历事件ID
+     * @param newStartTime     开始时间
+     * @param newEndTime       结束时间
+     * @param newEventTitle    事件标题
+     * @param newEventDes      事件描述
+     * @param newEventLocation 事件地点
+     * @param newAdvanceTime   事件提醒时间
      * @return -2: permission deny  else success
      * @see AdvanceTime 提醒时间
      */
-    public static int updateCalendarEvent(Context context, long eventID, long startTime, long endTime,
-                                          String eventTitle, String eventDes, String eventLocation,
-                                          long advanceTime) {
+    public static int updateCalendarEvent(Context context, long eventID, long newStartTime, long newEndTime,
+                                          String newEventTitle, String newEventDes, String newEventLocation,
+                                          long newAdvanceTime) {
         if (null == context) {
             throw new IllegalArgumentException("context can not be null");
         }
@@ -285,7 +285,7 @@ public class CalendarProviderManager {
         Uri uri2 = CalendarContract.Reminders.CONTENT_URI;
 
         ContentValues event = new ContentValues();
-        setupEvent(startTime, endTime, eventTitle, eventDes, eventLocation, event);
+        setupEvent(newStartTime, newEndTime, newEventTitle, newEventDes, newEventLocation, event);
 
         // 更新匹配条件
         String selection1 = "(" + CalendarContract.Events._ID + " = ?)";
@@ -303,7 +303,7 @@ public class CalendarProviderManager {
 
 
         ContentValues reminders = new ContentValues();
-        reminders.put(CalendarContract.Reminders.MINUTES, advanceTime);
+        reminders.put(CalendarContract.Reminders.MINUTES, newAdvanceTime);
         reminders.put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT);
 
         // 更新匹配条件
@@ -320,7 +320,7 @@ public class CalendarProviderManager {
      *
      * @return If successfully returns 1
      */
-    public static int updateCalendarEventStartTime(Context context, long eventID, long startTime) {
+    public static int updateCalendarEventStartTime(Context context, long eventID, long newStartTime) {
         if (null == context) {
             throw new IllegalArgumentException("context can not be null");
         }
@@ -329,7 +329,7 @@ public class CalendarProviderManager {
 
         // 新的数据
         ContentValues event = new ContentValues();
-        event.put(CalendarContract.Events.DTSTART, startTime);
+        event.put(CalendarContract.Events.DTSTART, newStartTime);
 
         // 匹配条件
         String selection = "(" + CalendarContract.Events._ID + " = ?)";
@@ -343,7 +343,7 @@ public class CalendarProviderManager {
      *
      * @return If successfully returns 1
      */
-    public static int updateCalendarEventEndTime(Context context, long eventID, long endTime) {
+    public static int updateCalendarEventEndTime(Context context, long eventID, long newEndTime) {
         if (null == context) {
             throw new IllegalArgumentException("context can not be null");
         }
@@ -352,7 +352,7 @@ public class CalendarProviderManager {
 
         // 新的数据
         ContentValues event = new ContentValues();
-        event.put(CalendarContract.Events.DTEND, endTime);
+        event.put(CalendarContract.Events.DTEND, newEndTime);
 
 
         // 匹配条件
@@ -367,7 +367,7 @@ public class CalendarProviderManager {
      *
      * @return If successfully returns 1
      */
-    public static int updateCalendarEventTime(Context context, long eventID, long startTime, long endTime) {
+    public static int updateCalendarEventTime(Context context, long eventID, long newStartTime, long newEndTime) {
         if (null == context) {
             throw new IllegalArgumentException("context can not be null");
         }
@@ -376,8 +376,8 @@ public class CalendarProviderManager {
 
         // 新的数据
         ContentValues event = new ContentValues();
-        event.put(CalendarContract.Events.DTSTART, startTime);
-        event.put(CalendarContract.Events.DTEND, endTime);
+        event.put(CalendarContract.Events.DTSTART, newStartTime);
+        event.put(CalendarContract.Events.DTEND, newEndTime);
 
 
         // 匹配条件
@@ -416,7 +416,7 @@ public class CalendarProviderManager {
      *
      * @return If successfully returns 1
      */
-    public static int updateCalendarEventDes(Context context, long eventID, String eventDes) {
+    public static int updateCalendarEventDes(Context context, long eventID, String newEventDes) {
         if (null == context) {
             throw new IllegalArgumentException("context can not be null");
         }
@@ -425,7 +425,7 @@ public class CalendarProviderManager {
 
         // 新的数据
         ContentValues event = new ContentValues();
-        event.put(CalendarContract.Events.DESCRIPTION, eventDes);
+        event.put(CalendarContract.Events.DESCRIPTION, newEventDes);
 
 
         // 匹配条件
@@ -440,7 +440,7 @@ public class CalendarProviderManager {
      *
      * @return If successfully returns 1
      */
-    public static int updateCalendarEventLocation(Context context, long eventID, String eventLocation) {
+    public static int updateCalendarEventLocation(Context context, long eventID, String newEventLocation) {
         if (null == context) {
             throw new IllegalArgumentException("context can not be null");
         }
@@ -449,7 +449,7 @@ public class CalendarProviderManager {
 
         // 新的数据
         ContentValues event = new ContentValues();
-        event.put(CalendarContract.Events.EVENT_LOCATION, eventLocation);
+        event.put(CalendarContract.Events.EVENT_LOCATION, newEventLocation);
 
 
         // 匹配条件
@@ -464,7 +464,8 @@ public class CalendarProviderManager {
      *
      * @return If successfully returns 1
      */
-    public static int updateCalendarEventTitAndDes(Context context, long eventID, String eventTitle, String eventDes) {
+    public static int updateCalendarEventTitAndDes(Context context, long eventID, String newEventTitle,
+                                                   String newEventDes) {
         if (null == context) {
             throw new IllegalArgumentException("context can not be null");
         }
@@ -473,8 +474,8 @@ public class CalendarProviderManager {
 
         // 新的数据
         ContentValues event = new ContentValues();
-        event.put(CalendarContract.Events.TITLE, eventTitle);
-        event.put(CalendarContract.Events.DESCRIPTION, eventDes);
+        event.put(CalendarContract.Events.TITLE, newEventTitle);
+        event.put(CalendarContract.Events.DESCRIPTION, newEventDes);
 
 
         // 匹配条件
@@ -489,8 +490,8 @@ public class CalendarProviderManager {
      *
      * @return If successfully returns 1
      */
-    public static int updateCalendarEventCommonInfo(Context context, long eventID, String eventTitle,
-                                                    String eventDes, String eventLocation) {
+    public static int updateCalendarEventCommonInfo(Context context, long eventID, String newEventTitle,
+                                                    String newEventDes, String newEventLocation) {
         if (null == context) {
             throw new IllegalArgumentException("context can not be null");
         }
@@ -499,9 +500,9 @@ public class CalendarProviderManager {
 
         // 新的数据
         ContentValues event = new ContentValues();
-        event.put(CalendarContract.Events.TITLE, eventTitle);
-        event.put(CalendarContract.Events.DESCRIPTION, eventDes);
-        event.put(CalendarContract.Events.EVENT_LOCATION, eventLocation);
+        event.put(CalendarContract.Events.TITLE, newEventTitle);
+        event.put(CalendarContract.Events.DESCRIPTION, newEventDes);
+        event.put(CalendarContract.Events.EVENT_LOCATION, newEventLocation);
 
 
         // 匹配条件
@@ -516,7 +517,7 @@ public class CalendarProviderManager {
      *
      * @return If successfully returns 1
      */
-    private static int updateCalendarEventReminder(Context context, long eventID, long advanceTime) {
+    private static int updateCalendarEventReminder(Context context, long eventID, long newAdvanceTime) {
         if (null == context) {
             throw new IllegalArgumentException("context can not be null");
         }
@@ -524,7 +525,7 @@ public class CalendarProviderManager {
         Uri uri = CalendarContract.Reminders.CONTENT_URI;
 
         ContentValues reminders = new ContentValues();
-        reminders.put(CalendarContract.Reminders.MINUTES, advanceTime);
+        reminders.put(CalendarContract.Reminders.MINUTES, newAdvanceTime);
         reminders.put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT);
 
         // 更新匹配条件

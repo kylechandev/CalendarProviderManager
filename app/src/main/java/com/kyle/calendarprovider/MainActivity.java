@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         long eventID = events.get(0).getId();
                         int result3 = CalendarProviderManager.updateCalendarEventTitle(
-                                this, eventID, "改吃晚饭");
+                                this, eventID, "改吃晚饭的房间第三方监督司法");
                         if (result3 == 1) {
                             Toast.makeText(this, "更新成功", Toast.LENGTH_SHORT).show();
                         } else {
