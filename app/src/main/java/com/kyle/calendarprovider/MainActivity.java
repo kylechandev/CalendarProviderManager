@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                 // 启动系统日历进行编辑事件
                 CalendarProviderManager.startCalendarForIntentToInsert(this, System.currentTimeMillis(),
                         System.currentTimeMillis() + 60000, "哈", "哈哈哈哈", "蒂埃纳",
-                        false, null);
+                        false);
                 break;
             default:
                 break;

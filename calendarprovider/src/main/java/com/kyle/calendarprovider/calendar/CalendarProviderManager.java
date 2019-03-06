@@ -852,7 +852,7 @@ public class CalendarProviderManager {
      */
 
     /**
-     * 通过Intent启动系统日历插入新的事件
+     * 通过Intent启动系统日历新建事件界面插入新的事件
      * <p>
      * TIP: 这将不再需要声明读写日历数据的权限
      *
@@ -862,26 +862,23 @@ public class CalendarProviderManager {
      * @param des       事件描述
      * @param location  事件地点
      * @param isAllDay  事件是否全天
-     * @param rRule     事件重复规则
      */
     public static void startCalendarForIntentToInsert(Context context, long beginTime, long endTime,
                                                       String title, String des, String location,
-                                                      boolean isAllDay, String rRule) {
+                                                      boolean isAllDay) {
         checkCalendarAccount(context);
 
-        // FIXME: 2019/3/6 无法打开系统日历
+
+        // FIXME: 2019/3/6 VIVO手机无法打开界面，找不到对应的Activity  com.bbk.calendar
         Intent intent = new Intent(Intent.ACTION_INSERT)
                 .setData(CalendarContract.Events.CONTENT_URI)
                 .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime)
                 .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime)
+                .putExtra(CalendarContract.Events.ALL_DAY, isAllDay)
                 .putExtra(CalendarContract.Events.TITLE, title)
                 .putExtra(CalendarContract.Events.DESCRIPTION, des)
-                .putExtra(CalendarContract.Events.EVENT_LOCATION, location)
-                .putExtra(CalendarContract.Events.ALL_DAY, isAllDay)
-                .putExtra(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
-        if (null != rRule) {
-            intent.putExtra(CalendarContract.Events.RRULE, rRule);
-        }
+                .putExtra(CalendarContract.Events.EVENT_LOCATION, location);
+
         if (null != intent.resolveActivity(context.getPackageManager())) {
             context.startActivity(intent);
         }
@@ -898,7 +895,10 @@ public class CalendarProviderManager {
 
         Uri uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventID);
         Intent intent = new Intent(Intent.ACTION_EDIT).setData(uri);
-        context.startActivity(intent);
+
+        if (null != intent.resolveActivity(context.getPackageManager())) {
+            context.startActivity(intent);
+        }
     }
 
     /**
@@ -911,7 +911,10 @@ public class CalendarProviderManager {
 
         Uri uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventID);
         Intent intent = new Intent(Intent.ACTION_VIEW).setData(uri);
-        context.startActivity(intent);
+
+        if (null != intent.resolveActivity(context.getPackageManager())) {
+            context.startActivity(intent);
+        }
     }
 
 
