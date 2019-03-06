@@ -1,4 +1,4 @@
-package com.kyle.calendarprovider;
+package com.kyle.calendarprovider.calendar;
 
 import android.support.annotation.NonNull;
 

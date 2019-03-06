@@ -1,4 +1,4 @@
-package com.kyle.calendarprovider;
+package com.kyle.calendarprovider.calendar;
 
 /**
  * 日历事件重复模式
@@ -107,41 +107,41 @@ class RRuleConstant {
     /**
      * 每周重复 - 周一
      */
-    static final String REPEAT_WEEKLY_BY_MO = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = MO";
+    static final String REPEAT_WEEKLY_BY_MO = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = MO; UNTIL = ";
 
     /**
      * 每周重复 - 周二
      */
-    static final String REPEAT_WEEKLY_BY_TU = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = TU";
+    static final String REPEAT_WEEKLY_BY_TU = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = TU; UNTIL = ";
 
     /**
      * 每周重复 - 周三
      */
-    static final String REPEAT_WEEKLY_BY_WE = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = WE";
+    static final String REPEAT_WEEKLY_BY_WE = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = WE; UNTIL = ";
 
     /**
      * 每周重复 - 周四
      */
-    static final String REPEAT_WEEKLY_BY_TH = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = TH";
+    static final String REPEAT_WEEKLY_BY_TH = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = TH; UNTIL = ";
 
     /**
      * 每周重复 - 周五
      */
-    static final String REPEAT_WEEKLY_BY_FR = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = FR";
+    static final String REPEAT_WEEKLY_BY_FR = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = FR; UNTIL = ";
 
     /**
      * 每周重复 - 周六
      */
-    static final String REPEAT_WEEKLY_BY_SA = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = SA";
+    static final String REPEAT_WEEKLY_BY_SA = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = SA; UNTIL = ";
 
     /**
      * 每周重复 - 周日
      */
-    static final String REPEAT_WEEKLY_BY_SU = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = SU";
+    static final String REPEAT_WEEKLY_BY_SU = "FREQ = WEEKLY; INTERVAL = 1; WKST = MO; BYDAY = SU; UNTIL = ";
 
     /**
      * 每年第一天和最后一天 - 永远
      */
-    static final String REPEAST_YEARLY_FIRST_AND_LAST_FOREVER = "FREQ = YEARLY; BYYEARDAY = 1,-1";
+    static final String REPEAT_YEARLY_FIRST_AND_LAST_FOREVER = "FREQ = YEARLY; BYYEARDAY = 1,-1";
 
 }

@@ -1,4 +1,4 @@
-package com.kyle.calendarprovider;
+package com.kyle.calendarprovider.calendar;
 
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -9,6 +9,8 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.CalendarContract;
+
+import com.kyle.calendarprovider.TimeUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -186,7 +188,7 @@ public class CalendarProviderManager {
      * @param eventDes      事件描述
      * @param eventLocation 事件地点
      * @param startTime     事件开始时间
-     * @param endTime       事件结束时间
+     * @param endTime       事件结束时间  If is not a repeat event, this param is must need else null
      * @param advanceTime   事件提醒时间{@link AdvanceTime}
      *                      (If you don't need to remind the incoming parameters -2)
      * @param rRule         事件重复规则  {@link RRuleConstant}  {@code null} if dose not need
@@ -270,7 +272,7 @@ public class CalendarProviderManager {
      *
      * @param eventID          日历事件ID
      * @param newStartTime     开始时间
-     * @param newEndTime       结束时间
+     * @param newEndTime       结束时间 If is not a repeat event, this param is must need else null
      * @param newEventTitle    事件标题
      * @param newEventDes      事件描述
      * @param newEventLocation 事件地点
@@ -742,7 +744,28 @@ public class CalendarProviderManager {
         event.put(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
         if (null != rRule) {
             // 设置事件重复规则
-            event.put(CalendarContract.Events.RRULE, rRule);
+            event.put(CalendarContract.Events.RRULE, getFullRRuleForRRule(rRule, endTime));
+        }
+    }
+
+    /**
+     * 获取完整的重复规则(包含终止时间)
+     *
+     * @param rRule       重复规则
+     * @param endTimeInMs 结束时间
+     */
+    private static String getFullRRuleForRRule(String rRule, long endTimeInMs) {
+        switch (rRule) {
+            case RRuleConstant.REPEAT_WEEKLY_BY_MO:
+            case RRuleConstant.REPEAT_WEEKLY_BY_TU:
+            case RRuleConstant.REPEAT_WEEKLY_BY_WE:
+            case RRuleConstant.REPEAT_WEEKLY_BY_TH:
+            case RRuleConstant.REPEAT_WEEKLY_BY_FR:
+            case RRuleConstant.REPEAT_WEEKLY_BY_SA:
+            case RRuleConstant.REPEAT_WEEKLY_BY_SU:
+                return rRule + TimeUtil.getFinalRRuleMode(endTimeInMs);
+            default:
+                return rRule;
         }
     }
 
