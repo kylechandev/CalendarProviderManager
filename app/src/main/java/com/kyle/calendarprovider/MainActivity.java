@@ -6,15 +6,14 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.kyle.calendarprovider.calendar.CalendarEvent;
-import com.kyle.calendarprovider.calendar.CalendarProviderManager;
-
 import java.util.List;
+import java.util.TimeZone;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -39,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        Log.d("测试", TimeZone.getDefault().toString());
+
 
         // 检查有没有权限
         if (ContextCompat.checkSelfPermission(this,
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
                 // 添加事件
                 int result = CalendarProviderManager.addCalendarEvent(this, "马上吃饭",
                         "吃好吃的", "南信院二食堂", System.currentTimeMillis(),
-                        System.currentTimeMillis() + 60000, 0);
+                        System.currentTimeMillis() + 60000, 0, null);
                 if (result == 0) {
                     Toast.makeText(this, "插入成功", Toast.LENGTH_SHORT).show();
                 } else if (result == -1) {

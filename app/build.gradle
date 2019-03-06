@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.kyle.calendarproviderdemo"
+        applicationId "com.kyle.calendarprovider"
         minSdkVersion 21
         targetSdkVersion 28
         versionCode 1
@@ -31,4 +31,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'com.jakewharton:butterknife:9.0.0-rc3'
     annotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-rc3'
+    implementation project(':calendarprovider')
 }
