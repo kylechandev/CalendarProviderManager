@@ -31,6 +31,12 @@
         android:layout_height="64dp"
         android:text="查询日历事件" />
 
+    <Button
+        android:id="@+id/btn_edit"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:text="打开系统日历编辑" />
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">

@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
     Button btnMainQuery;
     @BindView(R.id.tv_event)
     TextView tvEvent;
+    @BindView(R.id.btn_edit)
+    Button btnEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,17 +41,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        // 检查有没有权限
+
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-            // 申请获取权限
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_CALENDAR,
                             Manifest.permission.READ_CALENDAR}, 1);
         }
     }
 
-    @OnClick({R.id.btn_main_add, R.id.btn_main_delete,
+    @OnClick({R.id.btn_main_add, R.id.btn_main_delete, R.id.btn_edit,
             R.id.btn_main_update, R.id.btn_main_query})
     public void onViewClicked(View view) {
         switch (view.getId()) {
@@ -121,6 +122,12 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(this, "查询失败", Toast.LENGTH_SHORT).show();
                 }
+                break;
+            case R.id.btn_edit:
+                // 启动系统日历进行编辑事件
+                CalendarProviderManager.startCalendarForIntentToInsert(this, System.currentTimeMillis(),
+                        System.currentTimeMillis() + 60000, "哈", "哈哈哈哈", "蒂埃纳",
+                        false, null);
                 break;
             default:
                 break;

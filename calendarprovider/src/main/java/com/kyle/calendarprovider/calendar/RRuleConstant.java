@@ -95,14 +95,14 @@ class RRuleConstant {
     static final String REPEAT_CYCLE_DAILY_FOREVER = "FREQ = DAILY; INTERVAL = 1";
 
     /**
-     * 每周重复 - 永远
+     * 每周某天重复
      */
-    static final String REPEAT_CYCLE_WEEKLY_FOREVER = "FREQ = WEEKLY; INTERVAL = 1; WKST = SU";
+    static final String REPEAT_CYCLE_WEEKLY = "FREQ = WEEKLY; INTERVAL = 1; WKST = SU; BYDAY = ";
 
     /**
-     * 每隔一周重复 - 永远
+     * 每月某天重复
      */
-    static final String REPEAT_CYCLE_TWO_WEEKLY_FOREVER = "FREQ = WEEKLY; INTERVAL = 2; WKST = SU";
+    static final String REPEAT_CYCLE_MONTHLY = "FREQ = WEEKLY; INTERVAL = 2; WKST = SU; BYMONTHDAY  = ";
 
     /**
      * 每周重复 - 周一

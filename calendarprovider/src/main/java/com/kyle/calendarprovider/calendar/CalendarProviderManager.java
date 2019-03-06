@@ -3,6 +3,7 @@ package com.kyle.calendarprovider.calendar;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -10,11 +11,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.CalendarContract;
 
-import com.kyle.calendarprovider.TimeUtil;
+import com.kyle.calendarprovider.Util;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
+
+import static com.kyle.calendarprovider.Util.checkContextNull;
 
 /**
  * 系统日历工具
@@ -27,6 +30,9 @@ import java.util.TimeZone;
  */
 public class CalendarProviderManager {
 
+    private static StringBuilder builder = new StringBuilder();
+
+
     /*
        TIP: 要向系统日历插入事件,前提系统中必须存在至少1个日历账户
      */
@@ -37,6 +43,8 @@ public class CalendarProviderManager {
     private static String CALENDAR_ACCOUNT_NAME = "KYLE";
     private static String CALENDAR_DISPLAY_NAME = "KYLE的账户";
 
+
+    // ------------------------------- 日历账户 -----------------------------------
 
     /**
      * 获取日历账户ID(若没有则会自动创建一个)
@@ -139,7 +147,8 @@ public class CalendarProviderManager {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // 检查日历权限
-            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission("android.permission.WRITE_CALENDAR")) {
+            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission(
+                    "android.permission.WRITE_CALENDAR")) {
                 accountUri = context.getContentResolver().insert(uri, account);
             } else {
                 return -2;
@@ -152,14 +161,12 @@ public class CalendarProviderManager {
     }
 
     /**
-     * 删除创建的日历
+     * 删除创建的日历账户
      *
      * @return -2: permission deny  0: No designated account  1: delete success
      */
     public static int deleteCalendarAccountByName(Context context) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         int deleteCount;
         Uri uri = CalendarContract.Calendars.CONTENT_URI;
@@ -169,7 +176,8 @@ public class CalendarProviderManager {
         String[] selectionArgs = new String[]{CALENDAR_ACCOUNT_NAME, CalendarContract.ACCOUNT_TYPE_LOCAL};
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission("android.permission.WRITE_CALENDAR")) {
+            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission(
+                    "android.permission.WRITE_CALENDAR")) {
                 deleteCount = context.getContentResolver().delete(uri, selection, selectionArgs);
             } else {
                 return -2;
@@ -181,13 +189,16 @@ public class CalendarProviderManager {
         return deleteCount;
     }
 
+
+    // ------------------------------- 添加日历事件 -----------------------------------
+
     /**
      * 添加日历事件
      *
      * @param eventTitle    事件标题
      * @param eventDes      事件描述
      * @param eventLocation 事件地点
-     * @param startTime     事件开始时间
+     * @param beginTime     事件开始时间
      * @param endTime       事件结束时间  If is not a repeat event, this param is must need else null
      * @param advanceTime   事件提醒时间{@link AdvanceTime}
      *                      (If you don't need to remind the incoming parameters -2)
@@ -195,7 +206,7 @@ public class CalendarProviderManager {
      * @return 0: success  -1: failed  -2: permission deny
      */
     public static int addCalendarEvent(Context context, String eventTitle, String eventDes,
-                                       String eventLocation, long startTime, long endTime,
+                                       String eventLocation, long beginTime, long endTime,
                                        int advanceTime, String rRule) {
          /*
             TIP: 插入一个新事件的规则：
@@ -205,9 +216,7 @@ public class CalendarProviderManager {
              4.  对重复发生的事件,必须包含一个附加了RRULE或RDATE字段的DURATION字段
          */
 
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         // 获取日历账户ID，也就是要将事件插入到的账户
         long calID = obtainCalendarAccountID(context);
@@ -226,12 +235,13 @@ public class CalendarProviderManager {
         ContentValues event = new ContentValues();
         // 事件要插入到的日历账户
         event.put(CalendarContract.Events.CALENDAR_ID, calID);
-        setupEvent(startTime, endTime, eventTitle, eventDes, eventLocation, event, rRule);
+        setupEvent(beginTime, endTime, eventTitle, eventDes, eventLocation, event, rRule);
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // 判断权限
-            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission("android.permission.WRITE_CALENDAR")) {
+            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission(
+                    "android.permission.WRITE_CALENDAR")) {
                 eventUri = context.getContentResolver().insert(uri1, event);
             } else {
                 return -2;
@@ -267,11 +277,14 @@ public class CalendarProviderManager {
         return 0;
     }
 
+
+    // ------------------------------- 更新日历事件 -----------------------------------
+
     /**
      * 更新指定ID的日历事件
      *
      * @param eventID          日历事件ID
-     * @param newStartTime     开始时间
+     * @param newBeginTime     开始时间
      * @param newEndTime       结束时间 If is not a repeat event, this param is must need else null
      * @param newEventTitle    事件标题
      * @param newEventDes      事件描述
@@ -280,12 +293,10 @@ public class CalendarProviderManager {
      * @param rRule            事件重复规则  {@link RRuleConstant}  {@code null} if dose not need
      * @return -2: permission deny  else success
      */
-    public static int updateCalendarEvent(Context context, long eventID, long newStartTime, long newEndTime,
+    public static int updateCalendarEvent(Context context, long eventID, long newBeginTime, long newEndTime,
                                           String newEventTitle, String newEventDes, String newEventLocation,
                                           long newAdvanceTime, String rRule) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         int updatedCount1;
 
@@ -293,14 +304,15 @@ public class CalendarProviderManager {
         Uri uri2 = CalendarContract.Reminders.CONTENT_URI;
 
         ContentValues event = new ContentValues();
-        setupEvent(newStartTime, newEndTime, newEventTitle, newEventDes, newEventLocation, event, rRule);
+        setupEvent(newBeginTime, newEndTime, newEventTitle, newEventDes, newEventLocation, event, rRule);
 
         // 更新匹配条件
         String selection1 = "(" + CalendarContract.Events._ID + " = ?)";
         String[] selectionArgs1 = new String[]{String.valueOf(eventID)};
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission("android.permission.WRITE_CALENDAR")) {
+            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission(
+                    "android.permission.WRITE_CALENDAR")) {
                 updatedCount1 = context.getContentResolver().update(uri1, event, selection1, selectionArgs1);
             } else {
                 return -2;
@@ -328,16 +340,14 @@ public class CalendarProviderManager {
      *
      * @return If successfully returns 1
      */
-    public static int updateCalendarEventStartTime(Context context, long eventID, long newStartTime) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+    public static int updateCalendarEventbeginTime(Context context, long eventID, long newBeginTime) {
+        checkContextNull(context);
 
         Uri uri = CalendarContract.Events.CONTENT_URI;
 
         // 新的数据
         ContentValues event = new ContentValues();
-        event.put(CalendarContract.Events.DTSTART, newStartTime);
+        event.put(CalendarContract.Events.DTSTART, newBeginTime);
 
         // 匹配条件
         String selection = "(" + CalendarContract.Events._ID + " = ?)";
@@ -352,9 +362,7 @@ public class CalendarProviderManager {
      * @return If successfully returns 1
      */
     public static int updateCalendarEventEndTime(Context context, long eventID, long newEndTime) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         Uri uri = CalendarContract.Events.CONTENT_URI;
 
@@ -375,16 +383,15 @@ public class CalendarProviderManager {
      *
      * @return If successfully returns 1
      */
-    public static int updateCalendarEventTime(Context context, long eventID, long newStartTime, long newEndTime) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+    public static int updateCalendarEventTime(Context context, long eventID, long newBeginTime,
+                                              long newEndTime) {
+        checkContextNull(context);
 
         Uri uri = CalendarContract.Events.CONTENT_URI;
 
         // 新的数据
         ContentValues event = new ContentValues();
-        event.put(CalendarContract.Events.DTSTART, newStartTime);
+        event.put(CalendarContract.Events.DTSTART, newBeginTime);
         event.put(CalendarContract.Events.DTEND, newEndTime);
 
 
@@ -401,9 +408,7 @@ public class CalendarProviderManager {
      * @return If successfully returns 1
      */
     public static int updateCalendarEventTitle(Context context, long eventID, String newTitle) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         Uri uri = CalendarContract.Events.CONTENT_URI;
 
@@ -425,9 +430,7 @@ public class CalendarProviderManager {
      * @return If successfully returns 1
      */
     public static int updateCalendarEventDes(Context context, long eventID, String newEventDes) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         Uri uri = CalendarContract.Events.CONTENT_URI;
 
@@ -449,9 +452,7 @@ public class CalendarProviderManager {
      * @return If successfully returns 1
      */
     public static int updateCalendarEventLocation(Context context, long eventID, String newEventLocation) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         Uri uri = CalendarContract.Events.CONTENT_URI;
 
@@ -474,9 +475,7 @@ public class CalendarProviderManager {
      */
     public static int updateCalendarEventTitAndDes(Context context, long eventID, String newEventTitle,
                                                    String newEventDes) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         Uri uri = CalendarContract.Events.CONTENT_URI;
 
@@ -500,9 +499,7 @@ public class CalendarProviderManager {
      */
     public static int updateCalendarEventCommonInfo(Context context, long eventID, String newEventTitle,
                                                     String newEventDes, String newEventLocation) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         Uri uri = CalendarContract.Events.CONTENT_URI;
 
@@ -526,15 +523,12 @@ public class CalendarProviderManager {
      * @return If successfully returns 1
      */
     private static int updateCalendarEventReminder(Context context, long eventID, long newAdvanceTime) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         Uri uri = CalendarContract.Reminders.CONTENT_URI;
 
         ContentValues reminders = new ContentValues();
         reminders.put(CalendarContract.Reminders.MINUTES, newAdvanceTime);
-        reminders.put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT);
 
         // 更新匹配条件
         String selection2 = "(" + CalendarContract.Reminders.EVENT_ID + " = ?)";
@@ -544,15 +538,37 @@ public class CalendarProviderManager {
     }
 
     /**
+     * 更新指定ID事件的提醒重复规则
+     *
+     * @return If successfully returns 1
+     */
+    private static int updateCalendarEventRRule(Context context, long eventID, String newRRule) {
+        checkContextNull(context);
+
+        Uri uri = CalendarContract.Events.CONTENT_URI;
+
+        // 新的数据
+        ContentValues event = new ContentValues();
+        event.put(CalendarContract.Events.RRULE, newRRule);
+
+        // 匹配条件
+        String selection = "(" + CalendarContract.Events._ID + " = ?)";
+        String[] selectionArgs = new String[]{String.valueOf(eventID)};
+
+        return context.getContentResolver().update(uri, event, selection, selectionArgs);
+    }
+
+
+    // ------------------------------- 删除日历事件 -----------------------------------
+
+    /**
      * 删除日历事件
      *
      * @param eventID 事件ID
      * @return -2: permission deny  else success
      */
     public static int deleteCalendarEvent(Context context, long eventID) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         int deletedCount1;
         Uri uri1 = CalendarContract.Events.CONTENT_URI;
@@ -563,7 +579,8 @@ public class CalendarProviderManager {
         String[] selectionArgs = new String[]{String.valueOf(eventID)};
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission("android.permission.WRITE_CALENDAR")) {
+            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission(
+                    "android.permission.WRITE_CALENDAR")) {
                 deletedCount1 = context.getContentResolver().delete(uri1, selection, selectionArgs);
             } else {
                 return -2;
@@ -581,15 +598,16 @@ public class CalendarProviderManager {
         return (deletedCount1 + deletedCount2) / 2;
     }
 
+
+    // ------------------------------- 查询日历事件 -----------------------------------
+
     /**
      * 查询指定日历账户下的所有事件
      *
      * @return If failed return null else return List<CalendarEvent>
      */
     public static List<CalendarEvent> queryAccountEvent(Context context, long calID) {
-        if (null == context) {
-            throw new IllegalArgumentException("context can not be null");
-        }
+        checkContextNull(context);
 
         final String[] EVENT_PROJECTION = new String[]{
                 CalendarContract.Events.CALENDAR_ID,             // 在表中的列索引0
@@ -626,13 +644,16 @@ public class CalendarProviderManager {
         Cursor cursor;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission("android.permission.READ_CALENDAR")) {
-                cursor = context.getContentResolver().query(uri, EVENT_PROJECTION, selection, selectionArgs, null);
+            if (PackageManager.PERMISSION_GRANTED == context.checkSelfPermission(
+                    "android.permission.READ_CALENDAR")) {
+                cursor = context.getContentResolver().query(uri, EVENT_PROJECTION, selection,
+                        selectionArgs, null);
             } else {
                 return null;
             }
         } else {
-            cursor = context.getContentResolver().query(uri, EVENT_PROJECTION, selection, selectionArgs, null);
+            cursor = context.getContentResolver().query(uri, EVENT_PROJECTION, selection,
+                    selectionArgs, null);
         }
 
         if (null == cursor) {
@@ -647,28 +668,50 @@ public class CalendarProviderManager {
             do {
                 CalendarEvent calendarEvent = new CalendarEvent();
                 result.add(calendarEvent);
-                calendarEvent.setId(cursor.getLong(cursor.getColumnIndex(CalendarContract.Events._ID)));
-                calendarEvent.setCalID(cursor.getLong(cursor.getColumnIndex(CalendarContract.Events.CALENDAR_ID)));
-                calendarEvent.setTitle(cursor.getString(cursor.getColumnIndex(CalendarContract.Events.TITLE)));
-                calendarEvent.setDescription(cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DESCRIPTION)));
-                calendarEvent.setEventLocation(cursor.getString(cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION)));
-                calendarEvent.setDisplayColor(cursor.getInt(cursor.getColumnIndex(CalendarContract.Events.DISPLAY_COLOR)));
-                calendarEvent.setStatus(cursor.getInt(cursor.getColumnIndex(CalendarContract.Events.STATUS)));
-                calendarEvent.setStart(cursor.getLong(cursor.getColumnIndex(CalendarContract.Events.DTSTART)));
-                calendarEvent.setEnd(cursor.getLong(cursor.getColumnIndex(CalendarContract.Events.DTEND)));
-                calendarEvent.setDuration(cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DURATION)));
-                calendarEvent.setEventTimeZone(cursor.getString(cursor.getColumnIndex(CalendarContract.Events.EVENT_TIMEZONE)));
-                calendarEvent.setEventEndTimeZone(cursor.getString(cursor.getColumnIndex(CalendarContract.Events.EVENT_END_TIMEZONE)));
-                calendarEvent.setAllDay(cursor.getInt(cursor.getColumnIndex(CalendarContract.Events.ALL_DAY)));
-                calendarEvent.setAccessLevel(cursor.getInt(cursor.getColumnIndex(CalendarContract.Events.ACCESS_LEVEL)));
-                calendarEvent.setAvailability(cursor.getInt(cursor.getColumnIndex(CalendarContract.Events.AVAILABILITY)));
-                calendarEvent.setHasAlarm(cursor.getInt(cursor.getColumnIndex(CalendarContract.Events.HAS_ALARM)));
-                calendarEvent.setRRule(cursor.getString(cursor.getColumnIndex(CalendarContract.Events.RRULE)));
-                calendarEvent.setRDate(cursor.getString(cursor.getColumnIndex(CalendarContract.Events.RDATE)));
-                calendarEvent.setHasAttendeeData(cursor.getInt(cursor.getColumnIndex(CalendarContract.Events.HAS_ATTENDEE_DATA)));
-                calendarEvent.setLastDate(cursor.getInt(cursor.getColumnIndex(CalendarContract.Events.LAST_DATE)));
-                calendarEvent.setOrganizer(cursor.getString(cursor.getColumnIndex(CalendarContract.Events.ORGANIZER)));
-                calendarEvent.setIsOrganizer(cursor.getString(cursor.getColumnIndex(CalendarContract.Events.IS_ORGANIZER)));
+                calendarEvent.setId(cursor.getLong(cursor.getColumnIndex(
+                        CalendarContract.Events._ID)));
+                calendarEvent.setCalID(cursor.getLong(cursor.getColumnIndex(
+                        CalendarContract.Events.CALENDAR_ID)));
+                calendarEvent.setTitle(cursor.getString(cursor.getColumnIndex(
+                        CalendarContract.Events.TITLE)));
+                calendarEvent.setDescription(cursor.getString(cursor.getColumnIndex(
+                        CalendarContract.Events.DESCRIPTION)));
+                calendarEvent.setEventLocation(cursor.getString(cursor.getColumnIndex(
+                        CalendarContract.Events.EVENT_LOCATION)));
+                calendarEvent.setDisplayColor(cursor.getInt(cursor.getColumnIndex(
+                        CalendarContract.Events.DISPLAY_COLOR)));
+                calendarEvent.setStatus(cursor.getInt(cursor.getColumnIndex(
+                        CalendarContract.Events.STATUS)));
+                calendarEvent.setStart(cursor.getLong(cursor.getColumnIndex(
+                        CalendarContract.Events.DTSTART)));
+                calendarEvent.setEnd(cursor.getLong(cursor.getColumnIndex(
+                        CalendarContract.Events.DTEND)));
+                calendarEvent.setDuration(cursor.getString(cursor.getColumnIndex(
+                        CalendarContract.Events.DURATION)));
+                calendarEvent.setEventTimeZone(cursor.getString(cursor.getColumnIndex(
+                        CalendarContract.Events.EVENT_TIMEZONE)));
+                calendarEvent.setEventEndTimeZone(cursor.getString(cursor.getColumnIndex(
+                        CalendarContract.Events.EVENT_END_TIMEZONE)));
+                calendarEvent.setAllDay(cursor.getInt(cursor.getColumnIndex(
+                        CalendarContract.Events.ALL_DAY)));
+                calendarEvent.setAccessLevel(cursor.getInt(cursor.getColumnIndex(
+                        CalendarContract.Events.ACCESS_LEVEL)));
+                calendarEvent.setAvailability(cursor.getInt(cursor.getColumnIndex(
+                        CalendarContract.Events.AVAILABILITY)));
+                calendarEvent.setHasAlarm(cursor.getInt(cursor.getColumnIndex(
+                        CalendarContract.Events.HAS_ALARM)));
+                calendarEvent.setRRule(cursor.getString(cursor.getColumnIndex(
+                        CalendarContract.Events.RRULE)));
+                calendarEvent.setRDate(cursor.getString(cursor.getColumnIndex(
+                        CalendarContract.Events.RDATE)));
+                calendarEvent.setHasAttendeeData(cursor.getInt(cursor.getColumnIndex(
+                        CalendarContract.Events.HAS_ATTENDEE_DATA)));
+                calendarEvent.setLastDate(cursor.getInt(cursor.getColumnIndex(
+                        CalendarContract.Events.LAST_DATE)));
+                calendarEvent.setOrganizer(cursor.getString(cursor.getColumnIndex(
+                        CalendarContract.Events.ORGANIZER)));
+                calendarEvent.setIsOrganizer(cursor.getString(cursor.getColumnIndex(
+                        CalendarContract.Events.IS_ORGANIZER)));
 
 
                 // ----------------------- 开始查询事件提醒 ------------------------------
@@ -709,10 +752,13 @@ public class CalendarProviderManager {
         return result;
     }
 
+
+    // ------------------------------- 日历事件相关 -----------------------------------
+
     /**
      * 组装日历事件
      *
-     * @param startTime     开始时间
+     * @param beginTime     开始时间
      * @param endTime       结束时间
      * @param eventTitle    事件标题
      * @param eventDes      事件描述
@@ -720,10 +766,10 @@ public class CalendarProviderManager {
      * @param event         组装的事件
      * @param rRule         事件重复规则 {@link RRuleConstant}
      */
-    private static void setupEvent(long startTime, long endTime, String eventTitle, String eventDes,
+    private static void setupEvent(long beginTime, long endTime, String eventTitle, String eventDes,
                                    String eventLocation, ContentValues event, String rRule) {
         // 事件开始时间
-        event.put(CalendarContract.Events.DTSTART, startTime);
+        event.put(CalendarContract.Events.DTSTART, beginTime);
         // 事件结束时间
         event.put(CalendarContract.Events.DTEND, endTime);
         // 事件标题
@@ -744,17 +790,20 @@ public class CalendarProviderManager {
         event.put(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
         if (null != rRule) {
             // 设置事件重复规则
-            event.put(CalendarContract.Events.RRULE, getFullRRuleForRRule(rRule, endTime));
+            event.put(CalendarContract.Events.RRULE, getFullRRuleForRRule(rRule, beginTime, endTime));
         }
     }
 
     /**
      * 获取完整的重复规则(包含终止时间)
      *
-     * @param rRule       重复规则
-     * @param endTimeInMs 结束时间
+     * @param rRule     重复规则
+     * @param beginTime 开始时间
+     * @param endTime   结束时间
      */
-    private static String getFullRRuleForRRule(String rRule, long endTimeInMs) {
+    private static String getFullRRuleForRRule(String rRule, long beginTime, long endTime) {
+        builder.delete(0, builder.length());
+
         switch (rRule) {
             case RRuleConstant.REPEAT_WEEKLY_BY_MO:
             case RRuleConstant.REPEAT_WEEKLY_BY_TU:
@@ -763,10 +812,106 @@ public class CalendarProviderManager {
             case RRuleConstant.REPEAT_WEEKLY_BY_FR:
             case RRuleConstant.REPEAT_WEEKLY_BY_SA:
             case RRuleConstant.REPEAT_WEEKLY_BY_SU:
-                return rRule + TimeUtil.getFinalRRuleMode(endTimeInMs);
+                return builder.append(rRule).append(Util.getFinalRRuleMode(endTime)).toString();
+            case RRuleConstant.REPEAT_CYCLE_WEEKLY:
+                return builder.append(rRule).append(Util.getWeekForDate(beginTime)).append("; UNTIL = ")
+                        .append(Util.getFinalRRuleMode(endTime)).toString();
+            case RRuleConstant.REPEAT_CYCLE_MONTHLY:
+                return builder.append(rRule).append(Util.getDayOfMonth(beginTime))
+                        .append("; UNTIL = ").append(Util.getFinalRRuleMode(endTime)).toString();
             default:
                 return rRule;
         }
+    }
+
+
+    // ------------------------------- 通过Intent启动系统日历 -----------------------------------
+
+    /*
+        日历的Intent对象：
+
+           动作                  描述                         附加功能
+        ACTION_VIEW        打开指定时间的日历                    无
+        ACTION_VIEW        查看由EVENT_ID指定的事件        开始时间，结束时间
+        ACTION_EDIT        编辑由EVENT_ID指定的事件        开始时间，结束时间
+        ACTION_INSERT      创建一个事件                         所有
+
+
+        Intent对象的附加功能：
+
+        Events.TITLE                                        事件标题
+        CalendarContract.EXTRA_EVENT_BEGIN_TIME             开始时间
+        CalendarContract.EXTRA_EVENT_END_TIME               结束时间
+        CalendarContract.EXTRA_EVENT_ALL_DAY                是否全天
+        Events.EVENT_LOCATION                               事件地点
+        Events.DESCRIPTION                                  事件描述
+        Intent.EXTRA_EMALL                                  受邀者电子邮件,用逗号分隔
+        Events.RRULE                                        事件重复规则
+        Events.ACCESS_LEVEL                                 事件私有还是公有
+        Events.AVAILABILITY                                 预定事件是在忙时计数还是闲时计数
+     */
+
+    /**
+     * 通过Intent启动系统日历插入新的事件
+     * <p>
+     * TIP: 这将不再需要声明读写日历数据的权限
+     *
+     * @param beginTime 事件开始时间
+     * @param endTime   事件结束时间
+     * @param title     事件标题
+     * @param des       事件描述
+     * @param location  事件地点
+     * @param isAllDay  事件是否全天
+     * @param rRule     事件重复规则
+     */
+    public static void startCalendarForIntentToInsert(Context context, long beginTime, long endTime,
+                                                      String title, String des, String location,
+                                                      boolean isAllDay, String rRule) {
+        checkCalendarAccount(context);
+
+        // FIXME: 2019/3/6 无法打开系统日历
+        Intent intent = new Intent(Intent.ACTION_INSERT)
+                .setData(CalendarContract.Events.CONTENT_URI)
+                .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime)
+                .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime)
+                .putExtra(CalendarContract.Events.TITLE, title)
+                .putExtra(CalendarContract.Events.DESCRIPTION, des)
+                .putExtra(CalendarContract.Events.EVENT_LOCATION, location)
+                .putExtra(CalendarContract.Events.ALL_DAY, isAllDay)
+                .putExtra(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
+        if (null != rRule) {
+            intent.putExtra(CalendarContract.Events.RRULE, rRule);
+        }
+        if (null != intent.resolveActivity(context.getPackageManager())) {
+            context.startActivity(intent);
+        }
+    }
+
+    /**
+     * 通过Intent启动系统日历来编辑指定ID的事件
+     * <p>
+     *
+     * @param eventID 要编辑的事件ID
+     */
+    public static void startCalendarForIntentToEdit(Context context, long eventID) {
+        checkCalendarAccount(context);
+
+        Uri uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventID);
+        Intent intent = new Intent(Intent.ACTION_EDIT).setData(uri);
+        context.startActivity(intent);
+    }
+
+    /**
+     * 通过Intent启动系统日历来查看指定ID的事件
+     *
+     * @param eventID 要查看的事件ID
+     */
+    public static void startCalendarForIntentToView(Context context, long eventID) {
+        checkCalendarAccount(context);
+
+        Uri uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventID);
+        Intent intent = new Intent(Intent.ACTION_VIEW).setData(uri);
+        context.startActivity(intent);
     }
 
 
