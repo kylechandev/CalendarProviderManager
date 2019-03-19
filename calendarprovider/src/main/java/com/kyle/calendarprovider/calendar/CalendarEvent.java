@@ -12,7 +12,14 @@ import java.util.List;
 public class CalendarEvent {
 
     // ----------------------- 事件属性 -----------------------
+
+    /**
+     * 事件在表中的ID
+     */
     private long id;
+    /**
+     * 事件所属日历账户的ID
+     */
     private long calID;
     private String title;
     private String description;

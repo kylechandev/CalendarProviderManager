@@ -734,6 +734,28 @@ public class CalendarProviderManager {
         return result;
     }
 
+    /**
+     * 判断日历账户中是否已经存在此事件
+     *
+     * @param begin 事件开始时间
+     * @param end   事件结束时间
+     * @param title 事件标题
+     */
+    public static boolean isEventAlreadyExist(Context context, long begin, long end, String title) {
+        String[] projection = new String[]{
+                CalendarContract.Instances.BEGIN,
+                CalendarContract.Instances.END,
+                CalendarContract.Instances.TITLE
+        };
+
+        Cursor cursor = CalendarContract.Instances.query(
+                context.getContentResolver(), projection, begin, end, title);
+
+        return null != cursor && cursor.moveToFirst()
+                && cursor.getString(
+                cursor.getColumnIndex(CalendarContract.Instances.TITLE)).equals(title);
+    }
+
 
     // ------------------------------- 日历事件相关 -----------------------------------
 

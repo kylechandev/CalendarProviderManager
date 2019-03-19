@@ -1,53 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    tools:context=".MainActivity">
+    android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/btn_main_add"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:text="增加日历事件" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/btn_main_delete"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:text="删除日历事件" />
+        <Button
+            android:id="@+id/btn_main_add"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="增加日历事件" />
 
-    <Button
-        android:id="@+id/btn_main_update"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:text="更新日历事件" />
+        <Button
+            android:id="@+id/btn_main_delete"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="删除日历事件" />
 
-    <Button
-        android:id="@+id/btn_main_query"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:text="查询日历事件" />
+        <Button
+            android:id="@+id/btn_main_update"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="更新日历事件" />
 
-    <Button
-        android:id="@+id/btn_edit"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:text="打开系统日历编辑" />
+        <Button
+            android:id="@+id/btn_main_query"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="查询日历事件" />
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        <Button
+            android:id="@+id/btn_edit"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="打开系统日历编辑" />
+
+        <Button
+            android:id="@+id/btn_search"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="检查是否存在" />
 
         <TextView
             android:id="@+id/tv_event"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:textSize="16sp"
             tools:text="事件" />
 
-    </ScrollView>
+    </LinearLayout>
 
-</LinearLayout>
+</ScrollView>

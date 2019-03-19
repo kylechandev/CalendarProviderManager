@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     TextView tvEvent;
     @BindView(R.id.btn_edit)
     Button btnEdit;
+    @BindView(R.id.btn_search)
+    Button btnSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @OnClick({R.id.btn_main_add, R.id.btn_main_delete, R.id.btn_edit,
-            R.id.btn_main_update, R.id.btn_main_query})
+            R.id.btn_main_update, R.id.btn_main_query, R.id.btn_search})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_main_add:
@@ -135,6 +137,14 @@ public class MainActivity extends AppCompatActivity {
                 CalendarProviderManager.startCalendarForIntentToInsert(this, System.currentTimeMillis(),
                         System.currentTimeMillis() + 60000, "哈", "哈哈哈哈", "蒂埃纳",
                         false);
+                break;
+            case R.id.btn_search:
+                if (CalendarProviderManager.isEventAlreadyExist(this, 1552986006309L,
+                        155298606609L, "马上吃饭")) {
+                    Toast.makeText(this, "存在", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "不存在", Toast.LENGTH_SHORT).show();
+                }
                 break;
             default:
                 break;
