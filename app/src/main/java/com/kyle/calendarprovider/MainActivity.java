@@ -55,10 +55,17 @@ public class MainActivity extends AppCompatActivity {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_main_add:
+                CalendarEvent calendarEvent = new CalendarEvent(
+                        "马上吃饭",
+                        "吃好吃的",
+                        "南信院二食堂",
+                        System.currentTimeMillis(),
+                        System.currentTimeMillis() + 60000,
+                        0, null
+                );
+
                 // 添加事件
-                int result = CalendarProviderManager.addCalendarEvent(this, "马上吃饭",
-                        "吃好吃的", "南信院二食堂", System.currentTimeMillis(),
-                        System.currentTimeMillis() + 60000, 0, null);
+                int result = CalendarProviderManager.addCalendarEvent(this, calendarEvent);
                 if (result == 0) {
                     Toast.makeText(this, "插入成功", Toast.LENGTH_SHORT).show();
                 } else if (result == -1) {

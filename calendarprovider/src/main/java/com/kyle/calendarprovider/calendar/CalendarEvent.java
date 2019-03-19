@@ -36,8 +36,51 @@ public class CalendarEvent {
     private String isOrganizer;
 
 
+    // ----------------------------------------------------------------------------------------
+    /**
+     * 注：此属性不属于CalendarEvent
+     * 这里只是为了方便构造方法提供事件提醒时间
+     */
+    private int advanceTime;
+    // ----------------------------------------------------------------------------------------
+
+
     // ----------------------- 事件提醒属性 -----------------------
     private List<EventReminders> reminders;
+
+    CalendarEvent() {
+    }
+
+    /**
+     * 用于方便添加完整日历事件提供一个构造方法
+     *
+     * @param title         事件标题
+     * @param description   事件描述
+     * @param eventLocation 事件地点
+     * @param start         事件开始时间
+     * @param end           事件结束时间  If is not a repeat event, this param is must need else null
+     * @param advanceTime   事件提醒时间{@link AdvanceTime}
+     *                      (If you don't need to remind the incoming parameters -2)
+     * @param rRule         事件重复规则  {@link RRuleConstant}  {@code null} if dose not need
+     */
+    public CalendarEvent(String title, String description, String eventLocation,
+                         long start, long end, int advanceTime, String rRule) {
+        this.title = title;
+        this.description = description;
+        this.eventLocation = eventLocation;
+        this.start = start;
+        this.end = end;
+        this.advanceTime = advanceTime;
+        this.rRule = rRule;
+    }
+
+    public int getAdvanceTime() {
+        return advanceTime;
+    }
+
+    public void setAdvanceTime(int advanceTime) {
+        this.advanceTime = advanceTime;
+    }
 
     public long getId() {
         return id;

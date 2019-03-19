@@ -195,19 +195,10 @@ public class CalendarProviderManager {
     /**
      * 添加日历事件
      *
-     * @param eventTitle    事件标题
-     * @param eventDes      事件描述
-     * @param eventLocation 事件地点
-     * @param beginTime     事件开始时间
-     * @param endTime       事件结束时间  If is not a repeat event, this param is must need else null
-     * @param advanceTime   事件提醒时间{@link AdvanceTime}
-     *                      (If you don't need to remind the incoming parameters -2)
-     * @param rRule         事件重复规则  {@link RRuleConstant}  {@code null} if dose not need
+     * @param calendarEvent 日历事件(详细参数说明请参看{@link CalendarEvent}构造方法)
      * @return 0: success  -1: failed  -2: permission deny
      */
-    public static int addCalendarEvent(Context context, String eventTitle, String eventDes,
-                                       String eventLocation, long beginTime, long endTime,
-                                       int advanceTime, String rRule) {
+    public static int addCalendarEvent(Context context, CalendarEvent calendarEvent) {
          /*
             TIP: 插入一个新事件的规则：
              1.  必须包含CALENDAR_ID和DTSTART字段
@@ -235,7 +226,7 @@ public class CalendarProviderManager {
         ContentValues event = new ContentValues();
         // 事件要插入到的日历账户
         event.put(CalendarContract.Events.CALENDAR_ID, calID);
-        setupEvent(beginTime, endTime, eventTitle, eventDes, eventLocation, event, rRule);
+        setupEvent(calendarEvent, event);
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -255,7 +246,7 @@ public class CalendarProviderManager {
         }
 
 
-        if (-2 != advanceTime) {
+        if (-2 != calendarEvent.getAdvanceTime()) {
             // 获取事件ID
             long eventID = ContentUris.parseId(eventUri);
 
@@ -264,7 +255,7 @@ public class CalendarProviderManager {
             // 此提醒所对应的事件ID
             reminders.put(CalendarContract.Reminders.EVENT_ID, eventID);
             // 设置提醒提前的时间(0：准时  -1：使用系统默认)
-            reminders.put(CalendarContract.Reminders.MINUTES, advanceTime);
+            reminders.put(CalendarContract.Reminders.MINUTES, calendarEvent.getAdvanceTime());
             // 设置事件提醒方式为通知警报
             reminders.put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT);
             reminderUri = context.getContentResolver().insert(uri2, reminders);
@@ -283,19 +274,10 @@ public class CalendarProviderManager {
     /**
      * 更新指定ID的日历事件
      *
-     * @param eventID          日历事件ID
-     * @param newBeginTime     开始时间
-     * @param newEndTime       结束时间 If is not a repeat event, this param is must need else null
-     * @param newEventTitle    事件标题
-     * @param newEventDes      事件描述
-     * @param newEventLocation 事件地点
-     * @param newAdvanceTime   事件提醒时间 {@link AdvanceTime}
-     * @param rRule            事件重复规则  {@link RRuleConstant}  {@code null} if dose not need
+     * @param newCalendarEvent 更新的日历事件
      * @return -2: permission deny  else success
      */
-    public static int updateCalendarEvent(Context context, long eventID, long newBeginTime, long newEndTime,
-                                          String newEventTitle, String newEventDes, String newEventLocation,
-                                          long newAdvanceTime, String rRule) {
+    public static int updateCalendarEvent(Context context, long eventID, CalendarEvent newCalendarEvent) {
         checkContextNull(context);
 
         int updatedCount1;
@@ -304,7 +286,7 @@ public class CalendarProviderManager {
         Uri uri2 = CalendarContract.Reminders.CONTENT_URI;
 
         ContentValues event = new ContentValues();
-        setupEvent(newBeginTime, newEndTime, newEventTitle, newEventDes, newEventLocation, event, rRule);
+        setupEvent(newCalendarEvent, event);
 
         // 更新匹配条件
         String selection1 = "(" + CalendarContract.Events._ID + " = ?)";
@@ -323,7 +305,7 @@ public class CalendarProviderManager {
 
 
         ContentValues reminders = new ContentValues();
-        reminders.put(CalendarContract.Reminders.MINUTES, newAdvanceTime);
+        reminders.put(CalendarContract.Reminders.MINUTES, newCalendarEvent.getAdvanceTime());
         reminders.put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT);
 
         // 更新匹配条件
@@ -757,27 +739,18 @@ public class CalendarProviderManager {
 
     /**
      * 组装日历事件
-     *
-     * @param beginTime     开始时间
-     * @param endTime       结束时间
-     * @param eventTitle    事件标题
-     * @param eventDes      事件描述
-     * @param eventLocation 事件地点
-     * @param event         组装的事件
-     * @param rRule         事件重复规则 {@link RRuleConstant}
      */
-    private static void setupEvent(long beginTime, long endTime, String eventTitle, String eventDes,
-                                   String eventLocation, ContentValues event, String rRule) {
+    private static void setupEvent(CalendarEvent calendarEvent, ContentValues event) {
         // 事件开始时间
-        event.put(CalendarContract.Events.DTSTART, beginTime);
+        event.put(CalendarContract.Events.DTSTART, calendarEvent.getStart());
         // 事件结束时间
-        event.put(CalendarContract.Events.DTEND, endTime);
+        event.put(CalendarContract.Events.DTEND, calendarEvent.getEnd());
         // 事件标题
-        event.put(CalendarContract.Events.TITLE, eventTitle);
+        event.put(CalendarContract.Events.TITLE, calendarEvent.getTitle());
         // 事件描述(对应手机系统日历备注栏)
-        event.put(CalendarContract.Events.DESCRIPTION, eventDes);
+        event.put(CalendarContract.Events.DESCRIPTION, calendarEvent.getDescription());
         // 事件地点
-        event.put(CalendarContract.Events.EVENT_LOCATION, eventLocation);
+        event.put(CalendarContract.Events.EVENT_LOCATION, calendarEvent.getEventLocation());
         // 事件时区
         event.put(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().getID());
         // 定义事件的显示，默认即可
@@ -788,9 +761,11 @@ public class CalendarProviderManager {
         event.put(CalendarContract.Events.HAS_ALARM, 1);
         // 设置事件忙
         event.put(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
-        if (null != rRule) {
+        if (null != calendarEvent.getRRule()) {
             // 设置事件重复规则
-            event.put(CalendarContract.Events.RRULE, getFullRRuleForRRule(rRule, beginTime, endTime));
+            event.put(CalendarContract.Events.RRULE,
+                    getFullRRuleForRRule(calendarEvent.getRRule(),
+                            calendarEvent.getStart(), calendarEvent.getEnd()));
         }
     }
 
